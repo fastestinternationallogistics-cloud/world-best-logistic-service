@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Admin Dashboard</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header>
+  <img src="assets/logo.png" alt="Logo">
+  <nav>
+    <a href="index.html">Home</a>
+    <a href="tracking.html">Track</a>
+    <a href="login.html">Logout</a>
+  </nav>
+</header>
+
+<section class="card">
+  <h2>Add Package</h2>
+  <form id="packageForm" enctype="multipart/form-data">
+    <input name="trackingCode" placeholder="Tracking Code" required>
+    <input name="sender" placeholder="Sender Name" required>
+    <input name="senderLocation" placeholder="Sender Location" required>
+    <input name="receiver" placeholder="Receiver Name" required>
+    <input name="receiverLocation" placeholder="Receiver Location" required>
+    <input name="weight" placeholder="Weight (KG)" required>
+    <input name="status" placeholder="Status" required>
+    <input name="location" placeholder="Current Location" required>
+    <input name="lat" placeholder="Sender Latitude" required>
+    <input name="lng" placeholder="Sender Longitude" required>
+    <input name="receiverLat" placeholder="Receiver Latitude" required>
+    <input name="receiverLng" placeholder="Receiver Longitude" required>
+    <input type="file" name="proofImage" accept="image/*" required>
+    <button type="submit">Upload Package</button>
+  </form>
+</section>
+
+<section class="card">
+  <h2>Customer Messages</h2>
+  <button onclick="loadMessages()">Load Messages</button>
+  <div id="messages"></div>
+</section>
+
+<script>
+document.getElementById("packageForm").addEventListener("submit", async function(e){
+  e.preventDefault();
+  const formData=new FormData(this);
+  await fetch("/admin/add-package",{method:"POST",body:formData});
+  alert("Package uploaded successfully!");
+});
+
+async function loadMessages(){
+  const res=await fetch("/admin/messages");
+  const data=await res.json();
+  messages.innerHTML=data.map(m=>`<div class="card"><p><strong>${m.name}</strong>: ${m.message}</p>
+    <input id="reply${m.id}" placeholder="Reply here">
+    <button onclick="sendReply(${m.id})">Reply</button>
+    <p><strong>Admin Reply:</strong> ${m.reply||"No reply yet"}</p></div>`).join("");
+}
+
+async function sendReply(id){
+  const replyText=document.getElementById("reply"+id).value;
+  await fetch("/admin/reply",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({id,reply:replyText})});
+  loadMessages();
+}
+</script>
+
+</body>
+</html>
